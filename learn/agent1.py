@@ -24,7 +24,7 @@ client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
 MODEL = os.environ["MODEL_ID"]
 
-SYSTEM = f"You are a coding agent based at {os.getcwd}.Use bash to solve problems,don't ask,act."
+SYSTEM = f"You are a coding agent based at {os.getcwd()}.Use bash to solve problems,don't ask,act."
 
 TOOLS = [{
     "name":"bash",
