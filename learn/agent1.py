@@ -1,5 +1,6 @@
 import os
 import subprocess
+from urllib import response
 import httpx
 
 from anthropic import Anthropic
@@ -16,6 +17,8 @@ try:
     readline.parse_and_bind('set enable-meta-keybindings on')
 except ImportError:
     pass
+
+load_dotenv(override=True)
 
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 
@@ -41,11 +44,6 @@ TOOLS = [{
     }
 }
 ]
-
-TOOL_HANDLERS = {
-    "bash": lambda input: run_bash(input["command"]),
-    "tavily-search": lambda input: tavily_search(input["query"])
-}
 
 def tavily_search(query:str)->str:
     try:
@@ -91,3 +89,28 @@ def agent_loop(messages:list):
                     "tool_use_id":block.id,
                     "content":output
                 })
+        messages.append({"role":"user","content":results})
+
+TOOL_HANDLERS = {
+    "bash": lambda input: run_bash(input["command"]),
+    "tavily-search": lambda input: tavily_search(input["query"])
+}               
+
+if __name__ == "__main__":
+    history = []
+    while True:
+        try:
+            query = input("\033[36minput >> \033[0m")
+        except (EOFError,KeyboardInterrupt):
+            break
+        if query.strip().lower() in ("q","exit",""):
+            break
+        history.append({"role":"user","content":query})
+        agent_loop(history)
+        response_content = history[-1]["content"]
+        if isinstance(response_content,list):
+            for block in response_content:
+                if hasattr(block,"text"):
+                    print(block.text)
+        print()
+    
